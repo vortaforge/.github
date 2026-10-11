@@ -1,6 +1,6 @@
-# vortacraftmc/.github
+# vortaforge/.github
 
-Organization-wide defaults for [vortacraftmc](https://github.com/vortacraftmc).
+Organization-wide defaults for [VortaForge](https://github.com/vortaforge).
 
 - `profile/README.md` - the public organization profile page
 - `SECURITY.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SUPPORT.md` - default community health files
