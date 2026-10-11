@@ -1,10 +1,10 @@
-# vortacraftmc
+# VortaForge
 
 Fabric mods, Minecraft datapacks and developer tooling, maintained together in one place.
 
 ## Main repository
 
-**[vortacraftmc/core](https://github.com/vortacraftmc/core)** - the consolidated monorepo:
+**[vortaforge/core](https://github.com/vortaforge/core)** - the consolidated monorepo:
 
 | Folder | Contents |
 | --- | --- |
@@ -16,11 +16,15 @@ Fabric mods, Minecraft datapacks and developer tooling, maintained together in o
 ## Get involved
 
 - Found a bug or have an idea? Open an issue in the relevant repository.
-- Want to contribute? Read [CONTRIBUTING](https://github.com/vortacraftmc/.github/blob/main/CONTRIBUTING.md) first.
-- Found a security problem? Please follow [SECURITY](https://github.com/vortacraftmc/.github/blob/main/SECURITY.md) and do **not** open a public issue.
+- Want to contribute? Read [CONTRIBUTING](https://github.com/vortaforge/.github/blob/main/CONTRIBUTING.md) first.
+- Found a security problem? Please follow [SECURITY](https://github.com/vortaforge/.github/blob/main/SECURITY.md) and do **not** open a public issue.
 
 ## Origin
 
 This work originated as [`runtoolkit/suite`](https://github.com/runtoolkit/suite) by **Runtoolkit**.
-The Runtoolkit organization has since been retired, and its projects are maintained here.
+The Runtoolkit and vortacraftmc organizations have since been archived, and their projects continue here.
 Original copyright notices are preserved in each repository's `LICENSE` and `NOTICE` files.
+
+---
+
+Independent project. Not an official Minecraft product and not affiliated with or endorsed by Mojang or Microsoft.

@@ -1,9 +1,9 @@
 # Contributing
 
-Thanks for wanting to help. This is the default guide for all vortacraftmc repositories.
+Thanks for wanting to help. This is the default guide for all VortaForge repositories.
 A repository may add its own `CONTRIBUTING.md`, which then takes priority. For the main
 monorepo see
-[`vortacraftmc/core`](https://github.com/vortacraftmc/core/blob/main/CONTRIBUTING.md).
+[`vortaforge/core`](https://github.com/vortaforge/core/blob/main/CONTRIBUTING.md).
 
 ## Before you start
 

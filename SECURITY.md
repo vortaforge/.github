@@ -10,7 +10,7 @@ Report it privately instead:
 2. Choose **Report a vulnerability** (GitHub private vulnerability reporting).
 
 For the main repository that is:
-<https://github.com/vortacraftmc/core/security/advisories/new>
+<https://github.com/vortaforge/core/security/advisories/new>
 
 If private reporting is not available for a repository, contact a maintainer directly
 through GitHub and share details only once a private channel is established.

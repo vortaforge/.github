@@ -1,6 +1,6 @@
 # Code of Conduct
 
-We want vortacraftmc to be a friendly, respectful place to build things. This Code of
+We want VortaForge to be a friendly, respectful place to build things. This Code of
 Conduct applies to all repositories, issues, pull requests, discussions and other project
 spaces in this organization. It is inspired by the
 [Contributor Covenant](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).
