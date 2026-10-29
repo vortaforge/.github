@@ -13,6 +13,15 @@ Fabric mods, Minecraft datapacks and developer tooling, maintained together in o
 | `scripts/` | Helper tooling (datapack generators, dependency manager, GUI generator) |
 | `examples/` | Templates and sample projects |
 
+## Maintainer handover
+
+VortaForge is preparing a maintainer handover. The project is seeking a
+developer who can maintain the Fabric mods, datapacks, and tooling in
+`vortaforge/core` under the repository's documented safety, review, licensing,
+and no-history-rewrite rules. The current maintainer remains responsible until
+a successor explicitly accepts and the handover checklist in `core`'s
+`HANDOVER.md` is completed.
+
 ## Get involved
 
 - Found a bug or have an idea? Open an issue in the relevant repository.
