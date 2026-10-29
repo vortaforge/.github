@@ -12,3 +12,12 @@ New maintainer / owner:
 - Full responsibility is transferred to the new owner
 
 Date: 2026-10-11
+
+## Status update (2026-10-29)
+
+This file is retained as the dated handover record above. It is **not** a
+current statement that the project is unmaintained: `vortaforge/core` has
+active commits and pull requests after 2026-10-11. Check that repository's
+recent history and open pull requests for the current maintenance state. The
+technical-debt warning remains a useful caution, but individual claims in it
+should be re-measured before being repeated as current facts.

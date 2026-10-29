@@ -8,7 +8,7 @@ Fabric mods, Minecraft datapacks and developer tooling, maintained together in o
 
 | Folder | Contents |
 | --- | --- |
-| `mods/` | Fabric mods (for example `datapack-blocker`, `datapack-fixer`, `rtwrapper-mod`) |
+| `mods/` | Fabric mods (for example `datapack-blocker` and `rtwrapper-mod`; `datapack-fixer` is legacy source currently excluded from the shared build) |
 | `packs/` | Datapacks (for example TunnelScript, macroEngine, guikitfw, DailyBonus, QuickShare) |
 | `scripts/` | Helper tooling (datapack generators, dependency manager, GUI generator) |
 | `examples/` | Templates and sample projects |
