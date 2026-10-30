@@ -15,9 +15,12 @@ monorepo see
 
 1. Fork the repository and create a branch from `main`.
 2. Keep the change focused - one topic per pull request.
-3. Run the repository's build and lint checks (for `core`: `./gradlew buildAll` and
-   `./gradlew lint`). Gradle passing does not validate a datapack; load the pack in-game to
-   check it.
+3. Run the repository's canonical checks (for `core`: `./gradlew ci
+   -PconfirmZip=yes`; `buildAll` and `lint` are narrower local tasks, not the
+   full gate). Gradle passing does not prove datapack behaviour. For a human
+   contributor, `core`'s `NOTICE.md` checklist asks whether the pack was
+   load-validated; AI agents must follow `core`'s stricter rule and must not
+   start or test against a Minecraft server.
 4. Open a pull request and fill in the template, saying whether it touches mods, packs, or
    both.
 

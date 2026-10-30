@@ -8,10 +8,19 @@ Fabric mods, Minecraft datapacks and developer tooling, maintained together in o
 
 | Folder | Contents |
 | --- | --- |
-| `mods/` | Fabric mods (for example `datapack-blocker`, `datapack-fixer`, `rtwrapper-mod`) |
+| `mods/` | Fabric mods (for example `datapack-blocker` and `rtwrapper-mod`; `datapack-fixer` is legacy source currently excluded from the shared build) |
 | `packs/` | Datapacks (for example TunnelScript, macroEngine, guikitfw, DailyBonus, QuickShare) |
 | `scripts/` | Helper tooling (datapack generators, dependency manager, GUI generator) |
 | `examples/` | Templates and sample projects |
+
+## Maintainer handover
+
+VortaForge is preparing a maintainer handover. The project is seeking a
+developer who can maintain the Fabric mods, datapacks, and tooling in
+`vortaforge/core` under the repository's documented safety, review, licensing,
+and no-history-rewrite rules. The current maintainer remains responsible until
+a successor explicitly accepts and the handover checklist in `core`'s
+`HANDOVER.md` is completed.
 
 ## Get involved
 
