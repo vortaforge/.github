@@ -8,15 +8,17 @@
     ],
     "accounts": [
       "vortaforge-maintenance",
-      "github-actions"
+      "github-actions",
+      "tickwarden",
+      "legends11"
     ],
-    "$comment": "Accounts listed here are never matched by broad rules (bot/AI/profile heuristics). Add the maintainer's own bots here, not in `blocked`."
+    "$comment": "Accounts here are never matched by any rule. The maintainer's own accounts (tickwarden = Legends11, org owner; legends11) live here, not in `blocked`: they stopped shipping datapacks in 2026-11-05 but keep maintaining the Fabric mods, so blocking them would lock the maintainers out of their own repository. `ironcrest` is NOT here - it is a different person (id 204314210) and is not a maintainer."
   },
   "policy": {
     "default_action": "block",
     "pr_label_override": "datapack-approved",
     "profile_scan": true,
-    "profile_scan_action": "block",
+    "profile_scan_action": "review",
     "profile_tokens": [
       "datapack",
       "data pack",
@@ -31,12 +33,12 @@
       "datapack retired",
       "no longer maintains datapacks"
     ],
-    "$comment": "profile_scan is only executed by the org sync workflow (.github/scripts/blocklist_sync.py) with a read-only token: it reads public GitHub profile bio/company/name fields, never private data. It auto-files a blocked-account issue or adds the account to the generated org blocklist; accounts the maintainer wants exempt must be listed in managed.accounts."
+    "$comment": "profile_scan is executed only by vortaforge/.github's blocklist_sync.py with a read-only token. It reads PUBLIC profile fields (bio, company, name, blog) for accounts that already interacted with the organisation - never private data, never a global search. A hit opens an issue; it never blocks anyone automatically (profile_scan_action: review)."
   },
   "blocked": [
     {
       "id": "ai-agent-accounts",
-      "reason": "AI agent and AI-assistant accounts are blocked from authoring this repository; historical commits by them are kept but not repeated.",
+      "reason": "AI agent and AI-assistant accounts are blocked from authoring this repository.",
       "enforcement": "block",
       "scope": [
         "pull_request",
@@ -54,7 +56,7 @@
       "user_ids": [],
       "ref_patterns": [],
       "match_ai_accounts": true,
-      "notes": "match_ai_accounts heuristics: login contains copilot/claude/chatgpt/openai/gemini/grok/codex/anthropic, or an ai/agent/automation/devlop token between separators.",
+      "notes": "Matches logins containing copilot/claude/chatgpt/openai/gemini/grok/codex/anthropic, or an ai/agent/automation/devlop token between separators.",
       "added_on": "2026-11-05",
       "added_by": "vortaforge maintainer"
     },
@@ -70,68 +72,62 @@
       "user_ids": [],
       "ref_patterns": [],
       "match_bot_suffix": true,
-      "notes": "Matches logins ending in [bot], -bot, _bot or .bot. Managed bots (managed.accounts) are exempt.",
+      "notes": "Matches logins ending in [bot], -bot, _bot or .bot. Managed bots are exempt.",
       "added_on": "2026-11-05",
       "added_by": "vortaforge maintainer"
     },
     {
-      "id": "datapack-developers-profile-scan",
-      "reason": "Datapack developers are blocked organisation-wide. Detected by reading the public profile fields declared in policy.profile_tokens; a human still confirms each hit before the login is added to `blocked`.",
-      "enforcement": "review",
-      "scope": [
-        "profile"
-      ],
-      "logins": [],
-      "user_ids": [],
-      "ref_patterns": [],
-      "profile_scan": true,
-      "notes": "Fail-closed for pull requests: until a hit is confirmed or exempted the account is refused (guard rule pr-blocked).",
-      "added_on": "2026-11-05",
-      "added_by": "vortaforge maintainer"
-    },
-    {
-      "id": "known-datapack-authors",
-      "reason": "Accounts that authored the packs now in archived/packs/. Blocked as datapack developers per the maintainer's retirement decision; this is a policy decision, not an accusation.",
+      "id": "datapack-tooling-authors",
+      "reason": "Authors of the datapack developer toolchain this repository used to depend on: Spyglass / Data-pack Helper Plus (SPGoding, NeunEinser, MulverineX, Calverin, ChenCMD) and the vanilla schema/generator authors (jacobsjo, tryashtar). Same 2026-11-05 policy decision as `misode`: datapack tooling is retired here, so its authors are not invited to maintain it.",
       "enforcement": "block",
       "scope": [
         "pull_request",
         "org_membership"
       ],
       "logins": [
-        "legends11",
-        "ironcrest",
-        "tickwarden"
+        "SPGoding",
+        "NeunEinser",
+        "MulverineX",
+        "Calverin",
+        "ChenCMD",
+        "jacobsjo",
+        "tryashtar"
       ],
-      "user_ids": [],
+      "user_ids": [
+        15277496,
+        12124394,
+        12068027,
+        38361803,
+        46134240,
+        10163794,
+        26075577
+      ],
       "ref_patterns": [],
-      "notes": "If one of these accounts is to keep contributing to mods/ (not datapacks), move the login to managed.accounts instead of deleting the entry, so the exemption is explicit.",
+      "notes": "Only accounts verified through the GitHub users API on 2026-11-05 (id + login + profile) are listed. 'bedrock-datapacks' and similar organisations were checked and do not exist, so no guessed logins are present. Add a new login together with its numeric id.",
       "added_on": "2026-11-05",
       "added_by": "vortaforge maintainer"
     },
     {
       "id": "misode",
-      "reason": "Datapack developer/tooling author (misode, misode.dev). Maintainer decision 2026-11-05: datapack developers are blocked from the organisation after the datapack programme was retired.",
+      "reason": "Datapack tooling author (misode.github.io, @mcschema, Gamemode4Dev/GM4_Datapacks, SpyglassMC/vanilla-mcdoc). Blocked under the 2026-11-05 policy decision that datapack developers are no longer invited to contribute after the datapack programme was retired. Policy, not a personal accusation.",
       "enforcement": "block",
       "scope": [
         "pull_request",
         "push",
-        "org_membership",
-        "profile"
+        "org_membership"
       ],
       "logins": [
-        "misode",
-        "misode-dev",
-        "misode.dev",
-        "misode-tools",
-        "misode.github.io"
+        "misode"
       ],
-      "user_ids": [],
+      "user_ids": [
+        17352009
+      ],
       "ref_patterns": [
         "*/misode*",
         "misode/*",
         "misode-*"
       ],
-      "notes": "Exact account/org handles only - no wildcard globbing (a pattern like misode* would also catch unrelated accounts).",
+      "notes": "Only the verified account is listed: `misode-dev` and `misode-tools` were checked and do not exist, so they were removed rather than left in as harmless-looking guesses. `user_ids` is the rename-proof identifier; `misode.github.io` is a repository name, not an account.",
       "added_on": "2026-11-05",
       "added_by": "vortaforge maintainer"
     }
