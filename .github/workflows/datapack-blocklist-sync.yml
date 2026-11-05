@@ -27,6 +27,7 @@ on:
     branches: [main]
     paths:
       - "scripts/blocklist_sync.py"
+      - "tests/**"
       - "blocklist/**"
       - ".github/workflows/datapack-blocklist-sync.yml"
 
@@ -58,6 +59,12 @@ jobs:
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: "3.12"
+
+      - name: Run the sync regression tests
+        shell: bash
+        # Fail before touching the mirror: these tests pin the determinism and
+        # both-file checks that keep this workflow from committing no-ops.
+        run: python3 -m unittest discover -s tests -v
 
       - name: Check for drift against vortaforge/core
         id: drift
@@ -98,9 +105,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          # Only accounts that already interacted with this repository:
-          # recent PR authors and issue authors, plus anyone invited recently.
-          # Never a global search.
+          # Only accounts that already interacted with this repository: the
+          # last 50 PR authors and the last 50 issue authors. Nothing else is
+          # collected - not organisation members, not pending invitations, not
+          # a global search. This list is the scan's entire input.
           : > /tmp/logins.txt
           gh pr list --repo "${{ github.repository }}" --state all --limit 50 \
             --json author --jq '.[].author.login' >> /tmp/logins.txt || true
