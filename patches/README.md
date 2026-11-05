@@ -1,11 +1,18 @@
 # patches/
 
-The organisation-wide datapack blocklist change for `vortaforge/.github`, as a
+The organisation-wide blocklist change set for `vortaforge/.github`, as a
 `git format-patch` mailbox.
+
+> [!IMPORTANT]
+> **Apply the `vortaforge/core` patch first.** This patch mirrors core's
+> `blocklist/blocklist.json`; applied to a tree whose core has not been
+> updated, the mirror will disagree with the source and the sync check fails.
 
 | File | What it applies |
 |---|---|
-| `0001-feat-blocklist-organisation-wide-datapack-blocklist-.patch` | Adds `blocklist/`, `generated/`, `scripts/blocklist_sync.py` and the `datapack-blocklist-sync` workflow; documents the policy in `README.md` and `CONTRIBUTING.md`. |
+| `0001-feat-blocklist-organisation-wide-datapack-blocklist-.patch` | Adds `blocklist/` (the generated mirror), `generated/blocklist.json`, `scripts/blocklist_sync.py` and `.github/workflows/datapack-blocklist-sync.yml`. |
+
+Base commit: `bc8fca4`.
 
 ## Apply
 
@@ -13,17 +20,16 @@ The organisation-wide datapack blocklist change for `vortaforge/.github`, as a
 git clone https://github.com/vortaforge/.github.git
 cd .github
 git checkout -b datapack-blocklist
-git am patches/*.patch        # or: git am /path/to/core/archived/patches-gh/*.patch
+git am /path/to/core/archived/patches-gh/*.patch
 ```
 
-Apply `vortaforge/core`'s patch **first**: this one mirrors core's
-`blocklist/blocklist.json`, and the sync workflow expects it to exist.
-
-## Verify
+## Verify after applying
 
 ```bash
-python3 -c "import json;json.load(open('blocklist/blocklist.json'));print('json ok')"
-python3 scripts/blocklist_sync.py --check --core ../core    # exit 0 = in sync
+python3 scripts/blocklist_sync.py --check --core ../core    # exit 0 = in step
 ```
 
-The workflow itself was validated as YAML only; it has not run.
+> [!NOTE]
+> `blocklist/blocklist.json` is generated. Run `--write --core ../core` instead
+> of editing it; the next sync workflow run will overwrite a hand edit and the
+> drift check will fail first.
