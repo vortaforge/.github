@@ -183,3 +183,36 @@ class NoUnnecessaryCommits(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class WorkflowFailsClosed(unittest.TestCase):
+    """A scan that checked nobody must never report success.
+
+    Regression (2026-11-05 audit): `gh pr list ... || true` plus a `no accounts
+    to scan; exit 0` did exactly that. An API error produced an empty list, the
+    scan then found nothing to look at, and the job went green - reporting a
+    clean organisation when it had checked zero accounts.
+    """
+
+    def setUp(self):
+        import pathlib
+        raw = pathlib.Path(
+            ".github/workflows/datapack-blocklist-sync.yml").read_text(encoding="utf-8")
+        self.workflow = raw
+        # Join backslash continuations so a command can be matched as one unit.
+        self.logical = raw.replace("\\\n", " ").splitlines()
+
+    def test_gh_list_failures_are_not_discarded(self):
+        for call in ("gh pr list", "gh issue list"):
+            lines = [l for l in self.logical
+                     if call in l and "--json author" in l]
+            self.assertTrue(lines, f"{call} author listing not found")
+            for line in lines:
+                self.assertNotIn("|| true", line,
+                                 f"{call} still discards its exit status")
+
+    def test_an_empty_account_list_is_an_error(self):
+        self.assertNotRegex(
+            self.workflow, r"no accounts to scan\W*\n\s*exit 0",
+            "an empty account list is still reported as a successful scan")
+        self.assertIn("cannot report success", self.workflow)

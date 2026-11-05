@@ -110,11 +110,26 @@ jobs:
           # collected - not organisation members, not pending invitations, not
           # a global search. This list is the scan's entire input.
           : > /tmp/logins.txt
-          gh pr list --repo "${{ github.repository }}" --state all --limit 50 \
-            --json author --jq '.[].author.login' >> /tmp/logins.txt || true
-          gh issue list --repo "${{ github.repository }}" --state all --limit 50 \
-            --json author --jq '.[].author.login' >> /tmp/logins.txt || true
+          # Fail closed: `|| true` here meant an API error produced an empty
+          # list, the scan found nothing to look at, exited 0, and the job
+          # reported "no hits" when it had effectively checked nobody.
+          collected=0
+          if gh pr list --repo "${{ github.repository }}" --state all --limit 50 \
+               --json author --jq '.[].author.login' >> /tmp/logins.txt ; then
+            collected=$((collected + 1))
+          else
+            echo "::error::gh pr list failed; refusing to report a clean scan from a partial account list."
+            exit 1
+          fi
+          if gh issue list --repo "${{ github.repository }}" --state all --limit 50 \
+               --json author --jq '.[].author.login' >> /tmp/logins.txt ; then
+            collected=$((collected + 1))
+          else
+            echo "::error::gh issue list failed; refusing to report a clean scan from a partial account list."
+            exit 1
+          fi
           sort -u /tmp/logins.txt -o /tmp/logins.txt
+          echo "account sources that succeeded: $collected/2"
           echo "accounts to scan: $(wc -l < /tmp/logins.txt)"
 
       - name: Profile scan (public fields only)
@@ -124,9 +139,13 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          # An empty list is not "nothing to see": the repo has pull requests and
+          # issues, so zero authors means the listing above broke in a way that
+          # still exited 0, or the repo is genuinely empty. Either way this run
+          # cannot claim the accounts were checked, so it must not report clean.
           if [ ! -s /tmp/logins.txt ]; then
-            echo "no accounts to scan"
-            exit 0
+            echo "::error::no accounts collected; a scan that checked nobody cannot report success."
+            exit 1
           fi
           if python3 scripts/blocklist_sync.py --scan-profiles --logins-file /tmp/logins.txt; then
             echo "hits=0" >> "$GITHUB_OUTPUT"
