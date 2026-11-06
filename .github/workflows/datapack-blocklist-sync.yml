@@ -10,9 +10,16 @@
 #   * the profile scan reads PUBLIC profile fields only (bio, company, name,
 #     blog) for accounts that already appear in a PR/issue or an invitation -
 #     never private data, never a global GitHub search, never scraping;
-#   * a hit never blocks anyone automatically: it opens an issue that a human
-#     resolves. Until then pull requests from that account are refused
-#     (fail-closed) by the guard in vortaforge/core.
+#   * a hit never blocks anyone automatically. It opens an issue for a human to
+#     resolve. The guard in vortaforge/core reads the *blocklist file*, and a
+#     profile scan does not write to it -- so a hit has no effect on pull
+#     requests until a maintainer adds the account. (This comment used to claim
+#     the opposite: that PRs were "refused (fail-closed)" pending resolution.
+#     That was untrue, and the issue text said the same untrue thing.)
+#
+#   * there is no automatic organisation-wide enforcement anywhere in this
+#     workflow. Membership is not gated, and `datapack_guard.py --membership`
+#     is a manual CLI check, not something this workflow calls.
 #
 # Requires no secrets beyond the default token. Actions are pinned by SHA, as
 # the maintainer guide requires (the same rule the core repository enforces).
@@ -47,7 +54,8 @@ jobs:
     permissions:
       contents: write      # only to commit the generated mirror
       issues: write        # only to open a profile-scan issue
-      pull-requests: read  # to list recent PR authors for the profile scan
+      pull-requests: write # list recent PR authors, and open the mirror PR
+                           # (main is protected, so the bot cannot push directly)
 
     steps:
       - name: Checkout
@@ -97,7 +105,27 @@ jobs:
           git config user.email "actions@vortaforge.local"
           git add blocklist/blocklist.json generated/blocklist.json
           git commit -m "chore(blocklist): mirror vortaforge/core blocklist [skip ci]"
-          git push
+
+          # `main` is protected (ruleset "main": no direct pushes, PR required).
+          # GITHUB_TOKEN cannot bypass repository rulesets -- an Integration
+          # bypass actor is rejected for repository-level rulesets -- so a
+          # direct `git push` here fails with GH013 and takes the whole sync job
+          # down with it. Verified, not assumed: the run failed at exactly this
+          # step with "Changes must be made through a pull request".
+          #
+          # So the bot opens a pull request like anyone else. The mirror is
+          # still automatic; it just arrives through review.
+          branch="automation/blocklist-mirror"
+          git push --force origin "HEAD:${branch}"
+          if gh pr list --repo "${{ github.repository }}" --head "$branch" \
+               --state open --json number --jq '.[0].number' | grep -q .; then
+            echo "mirror pull request already open; branch updated"
+          else
+            gh pr create --repo "${{ github.repository }}" \
+              --base main --head "$branch" \
+              --title "chore(blocklist): mirror vortaforge/core blocklist" \
+              --body "Automated mirror of the blocklist in vortaforge/core. Opened by the sync workflow because main is protected and GITHUB_TOKEN cannot bypass repository rulesets."
+          fi
 
       - name: Collect accounts to profile-scan
         shell: bash
@@ -174,9 +202,15 @@ jobs:
               if result["verdict"] in ("hit", "unknown"):
                   lines.append(f"| @{result['login']} | {result['verdict']} | "
                                f"{', '.join(result['matched_tokens']) or '-'} |")
-          lines += ["", "Until this is resolved the account's pull requests are refused",
-                    "(fail-closed). Only public profile fields were read; no private data",
-                    "and no credentials are included in this report."]
+          lines += ["", "**This is a request for human review. It does not block anyone.**",
+                    "The account above is *not* on the blocklist and its pull requests are",
+                    "not refused. The guard reads `blocklist/blocklist.json`; a profile-scan",
+                    "hit does not write to it. If a maintainer decides the match is",
+                    "correct, they add the account there and the change is reviewed like",
+                    "any other. If it is a false positive, close this issue.",
+                    "",
+                    "Only public profile fields were read; no private data and no",
+                    "credentials are included in this report."]
           print("\n".join(lines))
           PY
           )"
