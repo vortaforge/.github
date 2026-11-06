@@ -95,6 +95,9 @@ jobs:
       - name: Commit the mirror
         if: steps.drift.outputs.mirror_up_to_date != '1'
         shell: bash
+        env:
+          # Opening the pull request needs the CLI to be authenticated.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           if git diff --quiet -- blocklist generated; then
