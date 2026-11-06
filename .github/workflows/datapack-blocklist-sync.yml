@@ -54,7 +54,8 @@ jobs:
     permissions:
       contents: write      # only to commit the generated mirror
       issues: write        # only to open a profile-scan issue
-      pull-requests: read  # to list recent PR authors for the profile scan
+      pull-requests: write # list recent PR authors, and open the mirror PR
+                           # (main is protected, so the bot cannot push directly)
 
     steps:
       - name: Checkout
@@ -104,7 +105,27 @@ jobs:
           git config user.email "actions@vortaforge.local"
           git add blocklist/blocklist.json generated/blocklist.json
           git commit -m "chore(blocklist): mirror vortaforge/core blocklist [skip ci]"
-          git push
+
+          # `main` is protected (ruleset "main": no direct pushes, PR required).
+          # GITHUB_TOKEN cannot bypass repository rulesets -- an Integration
+          # bypass actor is rejected for repository-level rulesets -- so a
+          # direct `git push` here fails with GH013 and takes the whole sync job
+          # down with it. Verified, not assumed: the run failed at exactly this
+          # step with "Changes must be made through a pull request".
+          #
+          # So the bot opens a pull request like anyone else. The mirror is
+          # still automatic; it just arrives through review.
+          branch="automation/blocklist-mirror"
+          git push --force origin "HEAD:${branch}"
+          if gh pr list --repo "${{ github.repository }}" --head "$branch" \
+               --state open --json number --jq '.[0].number' | grep -q .; then
+            echo "mirror pull request already open; branch updated"
+          else
+            gh pr create --repo "${{ github.repository }}" \
+              --base main --head "$branch" \
+              --title "chore(blocklist): mirror vortaforge/core blocklist" \
+              --body "Automated mirror of the blocklist in vortaforge/core. Opened by the sync workflow because main is protected and GITHUB_TOKEN cannot bypass repository rulesets."
+          fi
 
       - name: Collect accounts to profile-scan
         shell: bash
