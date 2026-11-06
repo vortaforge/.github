@@ -133,5 +133,6 @@
     }
   ],
   "generated_from": "https://github.com/vortaforge/core/blob/main/blocklist/blocklist.json",
-  "generated_on": "2026-11-05"
+  "generated_on": "2026-11-05",
+  "_drift_probe": "probe 3: bot must open a PR"
 }
