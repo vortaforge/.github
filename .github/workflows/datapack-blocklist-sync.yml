@@ -10,9 +10,16 @@
 #   * the profile scan reads PUBLIC profile fields only (bio, company, name,
 #     blog) for accounts that already appear in a PR/issue or an invitation -
 #     never private data, never a global GitHub search, never scraping;
-#   * a hit never blocks anyone automatically: it opens an issue that a human
-#     resolves. Until then pull requests from that account are refused
-#     (fail-closed) by the guard in vortaforge/core.
+#   * a hit never blocks anyone automatically. It opens an issue for a human to
+#     resolve. The guard in vortaforge/core reads the *blocklist file*, and a
+#     profile scan does not write to it -- so a hit has no effect on pull
+#     requests until a maintainer adds the account. (This comment used to claim
+#     the opposite: that PRs were "refused (fail-closed)" pending resolution.
+#     That was untrue, and the issue text said the same untrue thing.)
+#
+#   * there is no automatic organisation-wide enforcement anywhere in this
+#     workflow. Membership is not gated, and `datapack_guard.py --membership`
+#     is a manual CLI check, not something this workflow calls.
 #
 # Requires no secrets beyond the default token. Actions are pinned by SHA, as
 # the maintainer guide requires (the same rule the core repository enforces).
@@ -174,9 +181,15 @@ jobs:
               if result["verdict"] in ("hit", "unknown"):
                   lines.append(f"| @{result['login']} | {result['verdict']} | "
                                f"{', '.join(result['matched_tokens']) or '-'} |")
-          lines += ["", "Until this is resolved the account's pull requests are refused",
-                    "(fail-closed). Only public profile fields were read; no private data",
-                    "and no credentials are included in this report."]
+          lines += ["", "**This is a request for human review. It does not block anyone.**",
+                    "The account above is *not* on the blocklist and its pull requests are",
+                    "not refused. The guard reads `blocklist/blocklist.json`; a profile-scan",
+                    "hit does not write to it. If a maintainer decides the match is",
+                    "correct, they add the account there and the change is reviewed like",
+                    "any other. If it is a false positive, close this issue.",
+                    "",
+                    "Only public profile fields were read; no private data and no",
+                    "credentials are included in this report."]
           print("\n".join(lines))
           PY
           )"

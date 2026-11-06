@@ -216,3 +216,53 @@ class WorkflowFailsClosed(unittest.TestCase):
             self.workflow, r"no accounts to scan\W*\n\s*exit 0",
             "an empty account list is still reported as a successful scan")
         self.assertIn("cannot report success", self.workflow)
+
+
+class ProfileScanClaims(unittest.TestCase):
+    """The scan must not tell an account it blocked them when it did not.
+
+    Audit 2026-11-06: the policy says profile_scan_action=review, nothing writes
+    a hit into the blocklist, and the guard reads only the blocklist file -- yet
+    the issue text told the account "your pull requests are refused
+    (fail-closed)". A user reading that would reasonably believe they were
+    blocked. They were not.
+
+    A claim like that is worse than silence: it is a false statement about
+    enforcement, made to the person it affects.
+    """
+
+    def setUp(self):
+        import pathlib
+        self.raw = pathlib.Path(
+            ".github/workflows/datapack-blocklist-sync.yml").read_text(encoding="utf-8")
+
+    def test_issue_body_does_not_promise_a_block(self):
+        for phrase in ("pull requests are refused",
+                       "pull requests from that account are refused",
+                       "fail-closed) by the guard"):
+            self.assertNotIn(
+                phrase, self.raw,
+                f"the issue text still promises blocking it does not do: {phrase!r}")
+
+    def test_issue_body_says_it_does_not_block(self):
+        self.assertIn("does not block anyone", self.raw)
+        self.assertIn("request for human review", self.raw)
+
+    def test_policy_action_is_review_not_block(self):
+        import json, pathlib
+        policy = json.loads(pathlib.Path("blocklist/blocklist.json").read_text(encoding="utf-8"))
+        self.assertEqual(policy["policy"]["profile_scan_action"], "review",
+                         "policy and the issue text must agree")
+
+    def test_no_automatic_membership_enforcement_is_claimed(self):
+        # Only affirmative claims matter. The correction reads "no automatic
+        # organisation-wide enforcement", so a blunt substring check would fail
+        # on its own disclaimer; this looks at the two words either side.
+        import re
+        for match in re.finditer(r"(\w+\s+)?(\w+\s+)?(organisation-wide|org-wide)\s+enforcement",
+                                 self.raw):
+            preceding = " ".join(w for w in match.group(1, 2) if w).lower()
+            self.assertTrue(
+                "no" in preceding or "not" in preceding,
+                f"affirmative org-wide enforcement claim: {...!r}".replace("...", match.group(0)))
+        self.assertIn("no automatic organisation-wide enforcement", self.raw)
