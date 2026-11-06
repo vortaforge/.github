@@ -144,7 +144,7 @@ jobs:
           else
             gh issue create --repo "${{ github.repository }}" \
               --title "Blocklist mirror is stale: merge automation/blocklist-mirror" \
-              --body "The scheduled sync found drift between vortaforge/core's blocklist and the mirror in this repository. The corrected mirror is already committed to the automation/blocklist-mirror branch; open the pull request at ${pr_url}. main is protected and GitHub Actions is not permitted to create or approve pull requests here, deliberately: enabling that would let any workflow approve and merge its own pull request on the repository that holds the organisation's security policy. A maintainer merges this one. This issue is reused while it stays open."
+              --body "The scheduled sync found drift between vortaforge/core's blocklist and the mirror in this repository. The corrected mirror is already committed to the automation/blocklist-mirror branch; open the pull request: [review and open it](${pr_url}). main is protected and GitHub Actions is not permitted to create or approve pull requests here, deliberately: enabling that would let any workflow approve and merge its own pull request on the repository that holds the organisation's security policy. A maintainer merges this one. This issue is reused while it stays open."
           fi
 
       - name: Collect accounts to profile-scan
