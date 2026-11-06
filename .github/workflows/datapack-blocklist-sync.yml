@@ -110,24 +110,41 @@ jobs:
           git commit -m "chore(blocklist): mirror vortaforge/core blocklist [skip ci]"
 
           # `main` is protected (ruleset "main": no direct pushes, PR required).
-          # GITHUB_TOKEN cannot bypass repository rulesets -- an Integration
-          # bypass actor is rejected for repository-level rulesets -- so a
-          # direct `git push` here fails with GH013 and takes the whole sync job
-          # down with it. Verified, not assumed: the run failed at exactly this
-          # step with "Changes must be made through a pull request".
+          # Everything short of a pull request has been tried against the real
+          # repository:
           #
-          # So the bot opens a pull request like anyone else. The mirror is
-          # still automatic; it just arrives through review.
+          #   git push                  -> GH013, "Changes must be made through a
+          #                                pull request"
+          #   Integration bypass actor  -> GitHub rejects it for repository-level
+          #                                rulesets ("must be part of the ruleset
+          #                                source or owner organization")
+          #   gh pr create              -> "GitHub Actions is not permitted to
+          #                                create or approve pull requests"
+          #
+          # The last one is a repository setting that would let *any* workflow
+          # approve and merge its own pull request. On the repository that holds
+          # the organisation's security policy, turning that on to save one
+          # click is a bad trade, and it is the opposite of what this audit asks
+          # for. A long-lived personal token would be worse.
+          #
+          # So the bot pushes the branch and opens an issue with the one-click
+          # PR link. Drift is detected automatically, the branch is prepared
+          # automatically, and a human performs the final merge. `issues: write`
+          # is already granted; nothing new is enabled.
           branch="automation/blocklist-mirror"
-          git push --force origin "HEAD:${branch}"
+          git push --force origin "HEAD:${branch}" 2>/dev/null || git push --force origin "HEAD:${branch}"
+          pr_url="https://github.com/${{ github.repository }}/compare/main...${branch}?expand=1"
+
           if gh pr list --repo "${{ github.repository }}" --head "$branch" \
                --state open --json number --jq '.[0].number' | grep -q .; then
             echo "mirror pull request already open; branch updated"
+          elif gh issue list --repo "${{ github.repository }}" --state open \
+               --search "blocklist mirror is stale in:title" --json number --jq '.[].number' | grep -q .; then
+            echo "an open stale-mirror issue already exists; branch updated"
           else
-            gh pr create --repo "${{ github.repository }}" \
-              --base main --head "$branch" \
-              --title "chore(blocklist): mirror vortaforge/core blocklist" \
-              --body "Automated mirror of the blocklist in vortaforge/core. Opened by the sync workflow because main is protected and GITHUB_TOKEN cannot bypass repository rulesets."
+            gh issue create --repo "${{ github.repository }}" \
+              --title "Blocklist mirror is stale: merge automation/blocklist-mirror" \
+              --body "The scheduled sync found drift between vortaforge/core's blocklist and the mirror in this repository. The corrected mirror is already committed to the automation/blocklist-mirror branch; open the pull request at ${pr_url}. main is protected and GitHub Actions is not permitted to create or approve pull requests here, deliberately: enabling that would let any workflow approve and merge its own pull request on the repository that holds the organisation's security policy. A maintainer merges this one. This issue is reused while it stays open."
           fi
 
       - name: Collect accounts to profile-scan
