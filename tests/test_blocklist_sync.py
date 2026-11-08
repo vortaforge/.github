@@ -248,11 +248,23 @@ class ProfileScanClaims(unittest.TestCase):
         self.assertIn("does not block anyone", self.raw)
         self.assertIn("request for human review", self.raw)
 
-    def test_policy_action_is_review_not_block(self):
+    def test_profile_scanning_is_gone_not_merely_disabled(self):
+        """The scan was removed on 2026-11-08; a disabled flag would be a promise.
+
+        This test used to assert `profile_scan_action == "review"`, i.e. that the
+        scan was configured but only ever asked a human. The mechanism itself was
+        then removed together with the named-author entries it existed to find, so
+        the assertion is now the opposite: the keys must be absent. A flag left at
+        `false` reads as "temporarily off", and someone re-enables a thing that
+        scrapes public bios to infer what kind of person an account belongs to.
+        Absence is the only form of that decision that cannot be quietly undone.
+        """
         import json, pathlib
         policy = json.loads(pathlib.Path("blocklist/blocklist.json").read_text(encoding="utf-8"))
-        self.assertEqual(policy["policy"]["profile_scan_action"], "review",
-                         "policy and the issue text must agree")
+        for key in ("profile_scan", "profile_scan_action",
+                    "profile_tokens", "profile_exempt_tokens"):
+            self.assertNotIn(key, policy["policy"],
+                             f"`{key}` is back; the profile-scan mechanism was removed on purpose")
 
     def test_no_automatic_membership_enforcement_is_claimed(self):
         # Only affirmative claims matter. The correction reads "no automatic

@@ -11,12 +11,16 @@ Two independent jobs, both offline by default:
    `--check` exits 1 when the two differ, so the workflow can fail instead of
    silently drifting.
 
-2. Profile scan (`--scan-profiles`)
+2. Profile scan (`--scan-profiles`) - REMOVED 2026-11-08, see below
    For each login given on the command line (or in `--logins-file`), reads the
    **public** GitHub profile (`bio`, `company`, `name`, `blog`) with `gh api`
-   and reports whether it matches a `policy.profile_tokens` entry, unless the
-   profile contains a `policy.profile_exempt_tokens` phrase. It never blocks
-   anyone by itself: it writes `generated/profile-scan.json` and exits 1 when
+   ~~and reports whether it matches a `policy.profile_tokens` entry~~. The
+   token list and the scan itself were removed on 2026-11-08 together with the
+   two named-author entries they existed to find: scanning public bios to infer
+   that someone belongs to a category of person is the part of the old design
+   least worth keeping, and a flag whose token list is empty scans nothing. The
+   command stays so that an old caller fails with a clear message rather than a
+   KeyError. It never blocks anyone by itself: it writes `generated/profile-scan.json` and exits 1 when
    there are unresolved hits (fail-closed: the caller opens an issue).
 
 Only the Python standard library plus whatever `gh` is authenticated as. No
@@ -151,8 +155,14 @@ def gh_profile(login: str) -> dict | None:
 
 
 def scan(profile: dict, policy: dict) -> dict:
+    # No tokens, no scan. `policy.profile_tokens` was removed from the blocklist
+    # on 2026-11-08; a missing key is now the normal state rather than a
+    # misconfiguration, so this returns "clean" instead of failing.
     tokens = [t.lower() for t in policy.get("profile_tokens", [])]
     exempt = [t.lower() for t in policy.get("profile_exempt_tokens", [])]
+    if not tokens:
+        return {"login": profile.get("login"), "matched_tokens": [], "exemptions": [],
+                "verdict": "clean"}
     # `blog` is documented in blocklist/README.md as a scanned field and is
     # fetched by PROFILE_FIELDS, but was missing here, so a profile carrying the
     # matching token only in its website link was reported clean.
@@ -171,8 +181,13 @@ def scan(profile: dict, policy: dict) -> dict:
 
 def scan_profiles(logins: list[str]) -> int:
     policy = json.loads(TARGET.read_text(encoding="utf-8")).get("policy", {})
-    if not policy.get("profile_scan"):
-        print("[blocklist_sync] profile scan is disabled by policy")
+    if not policy.get("profile_scan") or not policy.get("profile_tokens"):
+        # `profile_scan` and its token lists were removed from the blocklist on
+        # 2026-11-08 with the named-author entries they were built to find. Both
+        # keys are absent now, so this is the normal path: nothing to scan, exit
+        # clean. The distinction that matters is between "not configured" and
+        # "configured and found nothing", and only the second is evidence.
+        print("[blocklist_sync] profile scan is not configured; nothing to scan")
         return 0
     managed = {
         str(x).lower()

@@ -1,0 +1,99 @@
+# .github/workflows/quality.yml
+#
+# The blocklist tests ran only inside the sync workflow. That workflow is
+# scheduled, and it fires on `push` to main for four paths - so a pull request
+# that edits the blocklist or the script that consumes it could be opened,
+# reviewed, approved and merged with nothing having executed its tests.
+#
+# This repository carries the organisation's blocklist policy. A change here
+# decides who is refused by `vortaforge/core`'s guard, which means "the tests are
+# somewhere else, on another schedule" is not an acceptable answer for a change
+# to it.
+#
+# The job id is `quality`, and it is the check a branch ruleset requires. Renaming
+# it silently un-requires it, because a ruleset names a check and a renamed check
+# is a check that no longer exists.
+
+name: Quality gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Quality gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Tests
+        # The same suite the sync job runs. Duplication on purpose: the sync job
+        # proves that what it is about to publish works, and this one proves that
+        # what is about to be merged works. Those are different moments, and
+        # letting a change reach main on the strength of a test that will only run
+        # after it lands is the ordering this repository already refused once.
+        run: python3 -m unittest discover -s tests -v
+
+      - name: The blocklist file parses and keeps its shape
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, sys
+          from pathlib import Path
+
+          path = Path("blocklist/blocklist.json")
+          if not path.is_file():
+              sys.exit("blocklist/blocklist.json is missing")
+          data = json.loads(path.read_text(encoding="utf-8"))
+
+          for key in ("schema_version", "managed", "blocked"):
+              if key not in data:
+                  sys.exit(f"blocklist.json has no `{key}`")
+
+          entries = data["blocked"]
+          if not isinstance(entries, list) or not entries:
+              sys.exit("blocklist.json lists no entries")
+
+          seen = set()
+          for entry in entries:
+              eid = entry.get("id")
+              if not eid:
+                  sys.exit(f"entry without an id: {entry!r}")
+              if eid in seen:
+                  sys.exit(f"duplicate entry id `{eid}`")
+              seen.add(eid)
+              if not entry.get("reason"):
+                  # A blocked account is a public statement about a real account.
+                  # Refusing one without saying why is what makes a blocklist
+                  # unusable and unfair.
+                  sys.exit(f"entry `{eid}` has no reason")
+              if entry.get("enforcement", "block") not in {"block", "review"}:
+                  sys.exit(f"entry `{eid}` has an unknown enforcement value")
+
+          # A person's login must not be blocked for being a person. Bot and
+          # AI-agent rules describe an actor type; a named individual is a
+          # different kind of claim and the file must not carry one without a
+          # `reason` that names a behaviour.
+          print(f"ok: {len(entries)} entries, "
+                f"{len(data.get('managed', {}).get('accounts', []))} managed accounts")
+          PY
