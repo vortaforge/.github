@@ -1,3 +1,25 @@
+# 🗄️ Bu kuruluş arşivlendi — kullanılmıyor
+
+> **Durum:** arşivlendi · **Bakım:** yok · **Taşındığı yer:** [`tickwarden-archived`](https://github.com/tickwarden-archived)
+>
+> Buradaki depolar **vortaforge** organizasyonundan çıkarıldı ve arşiv organizasyonuna taşındı.
+> Geçmiş (issue, PR, yıldız, release) korunuyor; eski bağlantılar yönlendiriliyor.
+> Yeni iş bu hesapta yapılmıyor. Sorular ve geri alma: [`tickwarden-archived/archive-meta`](https://github.com/tickwarden-archived/archive-meta).
+
+<img src="https://raw.githubusercontent.com/vortaforge/.github/HEAD/archived-icon.png" width="160" alt="arşivlendi">
+
+### Geri alma
+
+```bash
+export GITHUB_TOKEN=...                        # repo + admin:org
+python3 restore/restore.py --list
+python3 restore/restore.py --unarchive --apply
+python3 restore/restore.py --transfer-back --apply
+```
+
+<details>
+<summary>Arşivden önceki içerik</summary>
+
 # VortaForge
 
 VortaForge brings together Fabric mods, Minecraft datapacks and the tooling used
@@ -62,3 +84,6 @@ by **Runtoolkit**; earlier project history also includes the Runtoolkit and
 vortacraftmc organizations. Preserve original copyright and attribution
 notices, and inspect the relevant component's `LICENSE`, `NOTICE` or other
 terms before use or redistribution.
+
+
+</details>
